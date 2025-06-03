@@ -11,41 +11,51 @@
     th, td { border: 1px solid #ccc; padding: 8px; text-align: center; }
     th { background-color: #f4f4f4; }
     .btn-delete { color: red; cursor: pointer; }
+    #loginPage { display: block; }
+    #mainPage { display: none; }
   </style>
   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
 </head>
 <body>
-  <h2>Catatan Keuangan</h2>
+  <div id="loginPage">
+    <h2>Login</h2>
+    <input type="text" id="username" placeholder="Username" required>
+    <input type="password" id="password" placeholder="Password" required>
+    <button onclick="login()">Masuk</button>
+  </div>
 
-  <form id="formTransaksi">
-    <input type="date" id="tanggal" required>
-    <input type="number" id="nominal" placeholder="Nominal" required>
-    <select id="jenis">
-      <option value="masuk">Masuk (+)</option>
-      <option value="keluar">Keluar (-)</option>
-    </select>
-    <input type="text" id="keterangan" placeholder="Keterangan">
-    <button type="submit">Tambah</button>
-  </form>
+  <div id="mainPage">
+    <h2>Catatan Keuangan</h2>
 
-  <h3>Saldo: Rp <span id="saldo">0</span></h3>
+    <form id="formTransaksi">
+      <input type="date" id="tanggal" required>
+      <input type="number" id="nominal" placeholder="Nominal" required>
+      <select id="jenis">
+        <option value="masuk">Masuk (+)</option>
+        <option value="keluar">Keluar (-)</option>
+      </select>
+      <input type="text" id="keterangan" placeholder="Keterangan">
+      <button type="submit">Tambah</button>
+    </form>
 
-  <table>
-    <thead>
-      <tr>
-        <th>Tanggal</th>
-        <th>Nominal</th>
-        <th>Jenis</th>
-        <th>Keterangan</th>
-        <th>Aksi</th>
-      </tr>
-    </thead>
-    <tbody id="history"></tbody>
-  </table>
+    <h3>Saldo: Rp <span id="saldo">0</span></h3>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Tanggal</th>
+          <th>Nominal</th>
+          <th>Jenis</th>
+          <th>Keterangan</th>
+          <th>Aksi</th>
+        </tr>
+      </thead>
+      <tbody id="history"></tbody>
+    </table>
+  </div>
 
   <script>
-    // Konfigurasi Firebase
     const firebaseConfig = {
       apiKey: "AIzaSyATcgsc_rXGyCqgh7FQPWjveJqUv19jTJU",
       authDomain: "project1-3f4af.firebaseapp.com",
@@ -60,14 +70,32 @@
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
 
+    const USERS = [
+      { username: 'admin', password: '1234' },
+      { username: 'user', password: 'password' }
+    ];
+
+    function login() {
+      const username = document.getElementById('username').value;
+      const password = document.getElementById('password').value;
+      const user = USERS.find(u => u.username === username && u.password === password);
+
+      if (user) {
+        document.getElementById('loginPage').style.display = 'none';
+        document.getElementById('mainPage').style.display = 'block';
+        loadData();
+      } else {
+        alert('Username atau password salah');
+      }
+    }
+
     let saldo = 0;
     let transaksiList = [];
     const saldoEl = document.getElementById('saldo');
     const historyEl = document.getElementById('history');
     const form = document.getElementById('formTransaksi');
 
-    // Ambil data dari Firebase saat halaman dimuat
-    window.onload = function() {
+    function loadData() {
       db.ref("transaksi").on("value", (snapshot) => {
         transaksiList = snapshot.val() || [];
         console.log("Data dari Firebase:", transaksiList);
@@ -101,7 +129,7 @@
       saldoEl.textContent = saldo.toLocaleString();
     }
 
-    form.addEventListener('submit', function(e) {
+    form?.addEventListener('submit', function(e) {
       e.preventDefault();
       console.log("Form disubmit");
 
