@@ -14,6 +14,8 @@
     #loginSection { display: block; }
     #mainApp { display: none; }
   </style>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 </head>
 <body>
   <div id="loginSection">
@@ -25,7 +27,7 @@
   </div>
 
   <div id="mainApp">
-    <h2>KAS 2A BISNIS DIGITAL</h2>
+    <h2>Catatan Keuangan</h2>
 
     <form id="formTransaksi">
       <input type="date" id="tanggal" required>
@@ -55,7 +57,20 @@
   </div>
 
   <script>
-    const USERS = [{ username: "bisnisdigital2a", password: "sukses321" }];
+    const firebaseConfig = {
+      apiKey: "AIzaSyATcgsc_rXGyCqgh7FQPWjveJqUv19jTJU",
+      authDomain: "project1-3f4af.firebaseapp.com",
+      databaseURL: "https://project1-3f4af-default-rtdb.firebaseio.com",
+      projectId: "project1-3f4af",
+      storageBucket: "project1-3f4af.appspot.com",
+      messagingSenderId: "321266458359",
+      appId: "1:321266458359:web:9e291f1fe862f37860bdf2"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+
+    const USERS = [{ username: "2abisdig", password: "sukses321" }];
 
     function login() {
       const user = document.getElementById("username").value;
@@ -78,20 +93,19 @@
     const form = document.getElementById('formTransaksi');
 
     function loadData() {
-      console.log("Memuat data dari localStorage...");
-      const saved = localStorage.getItem('transaksiList');
-      if (saved) {
-        transaksiList = JSON.parse(saved);
-        console.log("Data ditemukan:", transaksiList);
-        renderTransaksi();
-      } else {
-        console.log("Tidak ada data disimpan sebelumnya.");
-      }
+      console.log("Memuat data dari Firebase...");
+      db.ref("transaksi").on("value", snapshot => {
+        const data = snapshot.val();
+        if (data) {
+          transaksiList = data;
+          renderTransaksi();
+        }
+      });
     }
 
     function saveData() {
-      console.log("Menyimpan data:", transaksiList);
-      localStorage.setItem('transaksiList', JSON.stringify(transaksiList));
+      console.log("Menyimpan ke Firebase:", transaksiList);
+      db.ref("transaksi").set(transaksiList);
     }
 
     function renderTransaksi() {
