@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Catatan Keuangan</title>
+  <style>
+    body { font-family: Arial, sans-serif; padding: 20px; }
+    input, select, button { margin: 5px; padding: 5px; }
+    table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+    th, td { border: 1px solid #ccc; padding: 8px; text-align: center; }
+    th { background-color: #f4f4f4; }
+    .btn-delete { color: red; cursor: pointer; }
+  </style>
+</head>
+<body>
+  <h2>Catatan Keuangan</h2>
+
+  <form id="formTransaksi">
+    <input type="date" id="tanggal" required>
+    <input type="number" id="nominal" placeholder="Nominal" required>
+    <select id="jenis">
+      <option value="masuk">Masuk (+)</option>
+      <option value="keluar">Keluar (-)</option>
+    </select>
+    <input type="text" id="keterangan" placeholder="Keterangan">
+    <button type="submit">Tambah</button>
+  </form>
+
+  <h3>Saldo: Rp <span id="saldo">0</span></h3>
+
+  <table>
+    <thead>
+      <tr>
+        <th>Tanggal</th>
+        <th>Nominal</th>
+        <th>Jenis</th>
+        <th>Keterangan</th>
+        <th>Aksi</th>
+      </tr>
+    </thead>
+    <tbody id="history"></tbody>
+  </table>
+
+  <script>
+    let saldo = 0;
+    let transaksiList = [];
+    const saldoEl = document.getElementById('saldo');
+    const historyEl = document.getElementById('history');
+    const form = document.getElementById('formTransaksi');
+
+    // Load data dari localStorage
+    window.onload = function() {
+      const saved = localStorage.getItem('transaksiList');
+      if (saved) {
+        transaksiList = JSON.parse(saved);
+        renderTransaksi();
+      }
+    }
+
+    function saveData() {
+      localStorage.setItem('transaksiList', JSON.stringify(transaksiList));
+    }
+
+    function renderTransaksi() {
+      historyEl.innerHTML = '';
+      saldo = 0;
+      transaksiList.forEach((item, index) => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td>${item.tanggal}</td>
+          <td>Rp ${item.nominal.toLocaleString()}</td>
+          <td>${item.jenis}</td>
+          <td>${item.keterangan}</td>
+          <td><span class="btn-delete" data-index="${index}">Hapus</span></td>
+        `;
+        historyEl.appendChild(tr);
+        saldo += item.jenis === 'masuk' ? item.nominal : -item.nominal;
+      });
+      saldoEl.textContent = saldo.toLocaleString();
+    }
+
+    form.addEventListener('submit', function(e) {
+      e.preventDefault();
+
+      const tanggal = document.getElementById('tanggal').value;
+      const nominal = parseInt(document.getElementById('nominal').value);
+      const jenis = document.getElementById('jenis').value;
+      const keterangan = document.getElementById('keterangan').value;
+
+      transaksiList.push({ tanggal, nominal, jenis, keterangan });
+      saveData();
+      renderTransaksi();
+      form.reset();
+    });
+
+    historyEl.addEventListener('click', function(e) {
+      if (e.target.classList.contains('btn-delete')) {
+        const index = e.target.dataset.index;
+        transaksiList.splice(index, 1);
+        saveData();
+        renderTransaksi();
+      }
+    });
+  </script>
+</body>
+</html>
