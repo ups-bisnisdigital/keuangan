@@ -11,21 +11,20 @@
     th, td { border: 1px solid #ccc; padding: 8px; text-align: center; }
     th { background-color: #f4f4f4; }
     .btn-delete { color: red; cursor: pointer; }
-    #loginPage { display: block; }
-    #mainPage { display: none; }
+    #loginSection { display: block; }
+    #mainApp { display: none; }
   </style>
-  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
 </head>
 <body>
-  <div id="loginPage">
+  <div id="loginSection">
     <h2>Login</h2>
-    <input type="text" id="username" placeholder="Username" required>
-    <input type="password" id="password" placeholder="Password" required>
-    <button onclick="login()">Masuk</button>
+    <input type="text" id="username" placeholder="Username">
+    <input type="password" id="password" placeholder="Password">
+    <button onclick="login()">Login</button>
+    <p id="loginError" style="color:red;"></p>
   </div>
 
-  <div id="mainPage">
+  <div id="mainApp">
     <h2>Catatan Keuangan</h2>
 
     <form id="formTransaksi">
@@ -56,36 +55,19 @@
   </div>
 
   <script>
-    const firebaseConfig = {
-      apiKey: "AIzaSyATcgsc_rXGyCqgh7FQPWjveJqUv19jTJU",
-      authDomain: "project1-3f4af.firebaseapp.com",
-      databaseURL: "https://project1-3f4af-default-rtdb.firebaseio.com",
-      projectId: "project1-3f4af",
-      storageBucket: "project1-3f4af.firebasestorage.app",
-      messagingSenderId: "321266458359",
-      appId: "1:321266458359:web:9e291f1fe862f37860bdf2",
-      measurementId: "G-57J8BKP5ED"
-    };
-
-    firebase.initializeApp(firebaseConfig);
-    const db = firebase.database();
-
-    const USERS = [
-      { username: 'admin', password: '1234' },
-      { username: 'user', password: 'password' }
-    ];
+    const USERS = [{ username: "balyaibnutaufik", password: "balya4321" }];
 
     function login() {
-      const username = document.getElementById('username').value;
-      const password = document.getElementById('password').value;
-      const user = USERS.find(u => u.username === username && u.password === password);
+      const user = document.getElementById("username").value;
+      const pass = document.getElementById("password").value;
+      const valid = USERS.find(u => u.username === user && u.password === pass);
 
-      if (user) {
-        document.getElementById('loginPage').style.display = 'none';
-        document.getElementById('mainPage').style.display = 'block';
+      if (valid) {
+        document.getElementById("loginSection").style.display = "none";
+        document.getElementById("mainApp").style.display = "block";
         loadData();
       } else {
-        alert('Username atau password salah');
+        document.getElementById("loginError").textContent = "Username atau password salah!";
       }
     }
 
@@ -96,16 +78,20 @@
     const form = document.getElementById('formTransaksi');
 
     function loadData() {
-      db.ref("transaksi").on("value", (snapshot) => {
-        transaksiList = snapshot.val() || [];
-        console.log("Data dari Firebase:", transaksiList);
+      console.log("Memuat data dari localStorage...");
+      const saved = localStorage.getItem('transaksiList');
+      if (saved) {
+        transaksiList = JSON.parse(saved);
+        console.log("Data ditemukan:", transaksiList);
         renderTransaksi();
-      });
+      } else {
+        console.log("Tidak ada data disimpan sebelumnya.");
+      }
     }
 
     function saveData() {
-      console.log("Menyimpan ke Firebase:", transaksiList);
-      db.ref("transaksi").set(transaksiList);
+      console.log("Menyimpan data:", transaksiList);
+      localStorage.setItem('transaksiList', JSON.stringify(transaksiList));
     }
 
     function renderTransaksi() {
@@ -129,7 +115,7 @@
       saldoEl.textContent = saldo.toLocaleString();
     }
 
-    form?.addEventListener('submit', function(e) {
+    form.addEventListener('submit', function(e) {
       e.preventDefault();
       console.log("Form disubmit");
 
