@@ -12,6 +12,8 @@
     th { background-color: #f4f4f4; }
     .btn-delete { color: red; cursor: pointer; }
   </style>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
 </head>
 <body>
   <h2>Catatan Keuangan</h2>
@@ -43,29 +45,47 @@
   </table>
 
   <script>
+    // Konfigurasi Firebase
+    const firebaseConfig = {
+      apiKey: "AIzaSyATcgsc_rXGyCqgh7FQPWjveJqUv19jTJU",
+      authDomain: "project1-3f4af.firebaseapp.com",
+      databaseURL: "https://project1-3f4af-default-rtdb.firebaseio.com",
+      projectId: "project1-3f4af",
+      storageBucket: "project1-3f4af.firebasestorage.app",
+      messagingSenderId: "321266458359",
+      appId: "1:321266458359:web:9e291f1fe862f37860bdf2",
+      measurementId: "G-57J8BKP5ED"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+
     let saldo = 0;
     let transaksiList = [];
     const saldoEl = document.getElementById('saldo');
     const historyEl = document.getElementById('history');
     const form = document.getElementById('formTransaksi');
 
-    // Load data dari localStorage
+    // Ambil data dari Firebase saat halaman dimuat
     window.onload = function() {
-      const saved = localStorage.getItem('transaksiList');
-      if (saved) {
-        transaksiList = JSON.parse(saved);
+      db.ref("transaksi").on("value", (snapshot) => {
+        transaksiList = snapshot.val() || [];
+        console.log("Data dari Firebase:", transaksiList);
         renderTransaksi();
-      }
+      });
     }
 
     function saveData() {
-      localStorage.setItem('transaksiList', JSON.stringify(transaksiList));
+      console.log("Menyimpan ke Firebase:", transaksiList);
+      db.ref("transaksi").set(transaksiList);
     }
 
     function renderTransaksi() {
+      console.log("Merender transaksi...");
       historyEl.innerHTML = '';
       saldo = 0;
       transaksiList.forEach((item, index) => {
+        console.log(`Transaksi #${index}:`, item);
         const tr = document.createElement('tr');
         tr.innerHTML = `
           <td>${item.tanggal}</td>
@@ -77,17 +97,20 @@
         historyEl.appendChild(tr);
         saldo += item.jenis === 'masuk' ? item.nominal : -item.nominal;
       });
+      console.log("Saldo terbaru:", saldo);
       saldoEl.textContent = saldo.toLocaleString();
     }
 
     form.addEventListener('submit', function(e) {
       e.preventDefault();
+      console.log("Form disubmit");
 
       const tanggal = document.getElementById('tanggal').value;
       const nominal = parseInt(document.getElementById('nominal').value);
       const jenis = document.getElementById('jenis').value;
       const keterangan = document.getElementById('keterangan').value;
 
+      console.log("Input baru:", { tanggal, nominal, jenis, keterangan });
       transaksiList.push({ tanggal, nominal, jenis, keterangan });
       saveData();
       renderTransaksi();
@@ -97,6 +120,7 @@
     historyEl.addEventListener('click', function(e) {
       if (e.target.classList.contains('btn-delete')) {
         const index = e.target.dataset.index;
+        console.log(`Menghapus transaksi pada index ${index}`);
         transaksiList.splice(index, 1);
         saveData();
         renderTransaksi();
