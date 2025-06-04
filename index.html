@@ -1,18 +1,19 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Catatan Keuangan</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Catatan Keuangan & Presensi</title>
   <style>
-    body { font-family: Arial, sans-serif; padding: 20px; }
+    body { font-family: Arial, sans-serif; padding: 20px; display: flex; flex-direction: column; align-items: center; margin: 0; }
     input, select, button { margin: 5px; padding: 5px; }
     table { width: 100%; border-collapse: collapse; margin-top: 20px; }
     th, td { border: 1px solid #ccc; padding: 8px; text-align: center; }
     th { background-color: #f4f4f4; }
     .btn-delete { color: red; cursor: pointer; }
-    #loginSection { display: block; }
-    #mainApp { display: none; }
+    #loginSection { display: block; text-align: center; }
+    #mainApp { display: none; width: 100%; max-width: 900px; }
+    #presensiContainer { margin-top: 30px; }
   </style>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
@@ -22,13 +23,13 @@
     <h2>Login</h2>
     <input type="text" id="username" placeholder="Username">
     <input type="password" id="password" placeholder="Password">
+    <br>
     <button onclick="login()">Login</button>
     <p id="loginError" style="color:red;"></p>
   </div>
 
   <div id="mainApp">
-    <h2>KAS 2A BISNIS DIGITAL</h2>
-
+    <h2>Catatan Keuangan</h2>
     <form id="formTransaksi">
       <input type="date" id="tanggal" required>
       <input type="number" id="nominal" placeholder="Nominal" required>
@@ -39,9 +40,7 @@
       <input type="text" id="keterangan" placeholder="Keterangan">
       <button type="submit">Tambah</button>
     </form>
-
     <h3>Saldo: Rp <span id="saldo">0</span></h3>
-
     <table>
       <thead>
         <tr>
@@ -54,6 +53,23 @@
       </thead>
       <tbody id="history"></tbody>
     </table>
+
+    <div id="presensiContainer">
+      <h2>Daftar Anggota</h2>
+      <input type="date" id="tanggalPresensi">
+      <button id="togglePresensi" disabled>Tampilkan</button>
+      <table id="tabelPresensi" style="display:none;">
+        <thead>
+          <tr>
+            <th>No</th>
+            <th>Nama</th>
+            <th>NPM</th>
+            <th>Keterangan</th>
+          </tr>
+        </thead>
+        <tbody id="presensiBody"></tbody>
+      </table>
+    </div>
   </div>
 
   <script>
@@ -70,7 +86,12 @@
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
 
-    const USERS = [{ username: "2abisdig", password: "sukses321" }];
+    const USERS = [
+      { username: "2abisdig", password: "sukses321", canEdit: true },
+      { username: "bisnisdigital", password: "12345678", canEdit: false }
+    ];
+
+    let currentUserCanEdit = false;
 
     function login() {
       const user = document.getElementById("username").value;
@@ -78,9 +99,14 @@
       const valid = USERS.find(u => u.username === user && u.password === pass);
 
       if (valid) {
+        currentUserCanEdit = valid.canEdit;
         document.getElementById("loginSection").style.display = "none";
         document.getElementById("mainApp").style.display = "block";
+        if (!currentUserCanEdit) {
+          document.getElementById("formTransaksi").style.display = "none";
+        }
         loadData();
+        loadPresensiData();
       } else {
         document.getElementById("loginError").textContent = "Username atau password salah!";
       }
@@ -88,71 +114,157 @@
 
     let saldo = 0;
     let transaksiList = [];
-    const saldoEl = document.getElementById('saldo');
-    const historyEl = document.getElementById('history');
-    const form = document.getElementById('formTransaksi');
+    const saldoEl = document.getElementById("saldo");
+    const historyEl = document.getElementById("history");
+    const form = document.getElementById("formTransaksi");
 
     function loadData() {
-      console.log("Memuat data dari Firebase...");
       db.ref("transaksi").on("value", snapshot => {
         const data = snapshot.val();
-        if (data) {
-          transaksiList = data;
-          renderTransaksi();
-        }
+        transaksiList = data || [];
+        renderTransaksi();
       });
     }
 
     function saveData() {
-      console.log("Menyimpan ke Firebase:", transaksiList);
+      if (!currentUserCanEdit) return;
       db.ref("transaksi").set(transaksiList);
     }
 
     function renderTransaksi() {
-      console.log("Merender transaksi...");
       historyEl.innerHTML = '';
       saldo = 0;
       transaksiList.forEach((item, index) => {
-        console.log(`Transaksi #${index}:`, item);
-        const tr = document.createElement('tr');
+        const tr = document.createElement("tr");
         tr.innerHTML = `
           <td>${item.tanggal}</td>
           <td>Rp ${item.nominal.toLocaleString()}</td>
           <td>${item.jenis}</td>
           <td>${item.keterangan}</td>
-          <td><span class="btn-delete" data-index="${index}">Hapus</span></td>
+          <td>${currentUserCanEdit ? `<span class="btn-delete" data-index="${index}">Hapus</span>` : '-'}</td>
         `;
         historyEl.appendChild(tr);
         saldo += item.jenis === 'masuk' ? item.nominal : -item.nominal;
       });
-      console.log("Saldo terbaru:", saldo);
       saldoEl.textContent = saldo.toLocaleString();
     }
 
-    form.addEventListener('submit', function(e) {
+    form.addEventListener("submit", function(e) {
       e.preventDefault();
-      console.log("Form disubmit");
+      if (!currentUserCanEdit) return;
 
-      const tanggal = document.getElementById('tanggal').value;
-      const nominal = parseInt(document.getElementById('nominal').value);
-      const jenis = document.getElementById('jenis').value;
-      const keterangan = document.getElementById('keterangan').value;
+      const tanggal = document.getElementById("tanggal").value;
+      const nominal = parseInt(document.getElementById("nominal").value);
+      const jenis = document.getElementById("jenis").value;
+      const keterangan = document.getElementById("keterangan").value;
 
-      console.log("Input baru:", { tanggal, nominal, jenis, keterangan });
       transaksiList.push({ tanggal, nominal, jenis, keterangan });
       saveData();
       renderTransaksi();
       form.reset();
     });
 
-    historyEl.addEventListener('click', function(e) {
-      if (e.target.classList.contains('btn-delete')) {
+    historyEl.addEventListener("click", function(e) {
+      if (!currentUserCanEdit) return;
+      if (e.target.classList.contains("btn-delete")) {
         const index = e.target.dataset.index;
-        console.log(`Menghapus transaksi pada index ${index}`);
+        const item = transaksiList[index];
         transaksiList.splice(index, 1);
         saveData();
         renderTransaksi();
+
+        if (item.keterangan && item.tanggal) {
+          const presensiKey = `${item.tanggal}_${item.keterangan}`;
+          db.ref("presensi/" + presensiKey).remove();
+          if (presensiData[presensiKey]) {
+            delete presensiData[presensiKey];
+            renderPresensi();
+          }
+        }
       }
+    });
+
+    const mahasiswa = [
+      "ZIDAN IKHSANUR ADITIYA RACHMAN", "MAHARDIKA MUTIARA CINTA", "NAUFAL MAULANA MUBAROK",
+      "SALWA RIZKI AMANATI", "MUHAMMAD SANDY RAMADHANI", "DINDA PRAMESWARI",
+      "SALMAN BAGUS SATRIO", "MUHAMMAD MALIK ALFARIZI", "AFRIZAA AMNIL K", "NABILA MUTIA SYAHDA",
+      "MUHAMMAD YUSRIL AMRULLOH", "NABILLA AZZAHRA PUTRI", "ARZY BIAN P", "IVA DHIRAMETA DEVI",
+      "BALYA IBNU TAUFIK", "ZAHWA SALEH SEFF", "LUTFHI ARYANI", "AISYAH ADZKA NISA", "DEVINA DWI RIZQI MARDHATILLAH"
+    ];
+    const npms = [
+      "4424600003", "4424600008", "4424600009", "4424600015", "4424600016", "4424600018",
+      "4424600019", "4424600024", "4424600025", "4424600026", "4424600028", "4424600029",
+      "4424600030", "4424600032", "4424600033", "4424600034", "4424600036", "4424600037", "4424600005"
+    ];
+
+    const presensiBody = document.getElementById("presensiBody");
+    const tanggalPresensi = document.getElementById("tanggalPresensi");
+    const toggleBtn = document.getElementById("togglePresensi");
+    const tabelPresensi = document.getElementById("tabelPresensi");
+    let presensiData = {};
+    let selectedDate = "";
+
+    function loadPresensiData() {
+      db.ref("presensi").on("value", snapshot => {
+        presensiData = snapshot.val() || {};
+        if (selectedDate) renderPresensi();
+      });
+    }
+
+    tanggalPresensi.addEventListener("change", () => {
+      selectedDate = tanggalPresensi.value;
+      if (selectedDate) {
+        toggleBtn.disabled = false;
+        toggleBtn.textContent = "Sembunyikan Presensi";
+        tabelPresensi.style.display = "table";
+        renderPresensi();
+      }
+    });
+
+    toggleBtn.addEventListener("click", () => {
+      if (tabelPresensi.style.display === "none") {
+        tabelPresensi.style.display = "table";
+        toggleBtn.textContent = "Sembunyikan";
+        renderPresensi();
+      } else {
+        tabelPresensi.style.display = "none";
+        toggleBtn.textContent = "Tampilkan";
+      }
+    });
+
+    function renderPresensi() {
+      if (!selectedDate) return;
+      presensiBody.innerHTML = "";
+      mahasiswa.forEach((nama, i) => {
+        const npm = npms[i];
+        const key = `${selectedDate}_${nama}`;
+        const checked = !!presensiData[key];
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td>${i + 1}</td>
+          <td>${nama}</td>
+          <td>${npm}</td>
+          <td><input type="checkbox" ${checked ? "checked" : ""} data-nama="${nama}" ${!currentUserCanEdit ? "disabled" : ""}></td>
+        `;
+        presensiBody.appendChild(tr);
+      });
+    }
+
+    presensiBody.addEventListener("change", e => {
+      if (!currentUserCanEdit) return;
+      const checkbox = e.target;
+      const nama = checkbox.dataset.nama;
+      const key = `${selectedDate}_${nama}`;
+      if (checkbox.checked) {
+        db.ref("presensi/" + key).set(true);
+        transaksiList.push({ tanggal: selectedDate, nominal: 10000, jenis: "masuk", keterangan: nama });
+      } else {
+        db.ref("presensi/" + key).remove();
+        const index = transaksiList.findIndex(t => t.keterangan === nama && t.tanggal === selectedDate && t.nominal === 10000 && t.jenis === "masuk");
+        if (index !== -1) transaksiList.splice(index, 1);
+      }
+      saveData();
+      renderTransaksi();
     });
   </script>
 </body>
