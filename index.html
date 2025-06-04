@@ -12,8 +12,15 @@
     th { background-color: #f4f4f4; }
     .btn-delete { color: red; cursor: pointer; }
     #loginSection { display: block; text-align: center; }
-    #mainApp { display: none; width: 100%; max-width: 900px; }
+    #mainApp { display: none; width: 100%; max-width: 900px; position: relative; }
     #presensiContainer { margin-top: 30px; }
+    #saldoPresensi {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      font-size: 24px;
+      color: green;
+    }
   </style>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
@@ -29,6 +36,26 @@
   </div>
 
   <div id="mainApp">
+    <!-- PRESENSI -->
+    <div id="presensiContainer">
+      <h2>Daftar Anggota</h2>
+      <div id="saldoPresensi">Saldo: Rp <span id="saldoKanan">0</span></div>
+      <input type="date" id="tanggalPresensi">
+      <button id="togglePresensi" disabled>Tampilkan</button>
+      <table id="tabelPresensi" style="display:none;">
+        <thead>
+          <tr>
+            <th>No</th>
+            <th>Nama</th>
+            <th>NPM</th>
+            <th>Keterangan</th>
+          </tr>
+        </thead>
+        <tbody id="presensiBody"></tbody>
+      </table>
+    </div>
+
+    <!-- KEUANGAN -->
     <h2>Catatan Keuangan</h2>
     <form id="formTransaksi">
       <input type="date" id="tanggal" required>
@@ -53,23 +80,6 @@
       </thead>
       <tbody id="history"></tbody>
     </table>
-
-    <div id="presensiContainer">
-      <h2>Daftar Anggota</h2>
-      <input type="date" id="tanggalPresensi">
-      <button id="togglePresensi" disabled>Tampilkan</button>
-      <table id="tabelPresensi" style="display:none;">
-        <thead>
-          <tr>
-            <th>No</th>
-            <th>Nama</th>
-            <th>NPM</th>
-            <th>Keterangan</th>
-          </tr>
-        </thead>
-        <tbody id="presensiBody"></tbody>
-      </table>
-    </div>
   </div>
 
   <script>
@@ -115,6 +125,7 @@
     let saldo = 0;
     let transaksiList = [];
     const saldoEl = document.getElementById("saldo");
+    const saldoKananEl = document.getElementById("saldoKanan");
     const historyEl = document.getElementById("history");
     const form = document.getElementById("formTransaksi");
 
@@ -147,6 +158,7 @@
         saldo += item.jenis === 'masuk' ? item.nominal : -item.nominal;
       });
       saldoEl.textContent = saldo.toLocaleString();
+      saldoKananEl.textContent = saldo.toLocaleString(); // update saldo kanan
     }
 
     form.addEventListener("submit", function(e) {
