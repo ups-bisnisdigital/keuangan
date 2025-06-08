@@ -127,14 +127,14 @@
 
   <script>
     const firebaseConfig = {
-      apiKey: "AIzaSyATcgsc_rXGyCqgh7FQPWjveJqUv19jTJU",
-      authDomain: "kasbisdig.firebaseapp.com",
-      databaseURL: "https://kasbisdig-default-rtdb.firebaseio.com", 
-      projectId: "kasbisdig",
-      storageBucket: "kasbisdig.appspot.com",
-      messagingSenderId: "321266458359",
-      appId: "1:321266458359:web:9e291f1fe862f37860bdf2"
-    };
+  apiKey: "AIzaSyATcgsc_rXGyCqgh7FQPWjveJqUv19jTJU",
+  authDomain: "kasbisdig.firebaseapp.com",
+  databaseURL: "https://kasbisdig-default-rtdb.firebaseio.com", 
+  projectId: "kasbisdig",
+  storageBucket: "kasbisdig.appspot.com",
+  messagingSenderId: "321266458359",
+  appId: "1:321266458359:web:9e291f1fe862f37860bdf2"
+};
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
     const historyRef = db.ref("history");
@@ -186,8 +186,8 @@
     function renderTransaksi() {
       historyEl.innerHTML = '';
       saldo = 0;
-      // Urutkan dari terbaru
-      const sortedList = [...transaksiList].reverse(); 
+      // Urutkan dari terbaru ke terlama
+      const sortedList = [...transaksiList].reverse();
       sortedList.forEach((item, index) => {
         const tr = document.createElement("tr");
         tr.innerHTML = `
@@ -212,10 +212,11 @@
       const jenis = document.getElementById("jenis").value;
       const keterangan = document.getElementById("keterangan").value;
 
-      // Tambahkan ke awal array (terbaru dulu)
+      // Tambahkan ke awal array
       transaksiList.unshift({ tanggal, nominal, jenis, keterangan });
       saveData();
       renderTransaksi();
+      form.reset();
 
       // Simpan ke riwayat
       const now = new Date().toISOString().split('T')[0];
@@ -227,8 +228,6 @@
         keterangan: keterangan,
         action: "ditambahkan"
       });
-
-      form.reset();
     });
 
     historyEl.addEventListener("click", function(e) {
@@ -334,12 +333,10 @@
       const checkbox = e.target;
       const nama = checkbox.dataset.nama;
       const key = `${selectedDate}_${nama}`;
-
-      const now = new Date().toISOString().split('T')[0];
-
       if (checkbox.checked) {
         db.ref("presensi/" + key).set(true);
         transaksiList.unshift({ tanggal: selectedDate, nominal: 10000, jenis: "masuk", keterangan: nama });
+        const now = new Date().toISOString().split('T')[0];
         historyRef.push({
           tanggal_transaksi: selectedDate,
           tanggal_riwayat: now,
@@ -353,6 +350,7 @@
         const index = transaksiList.findIndex(t => t.keterangan === nama && t.tanggal === selectedDate && t.nominal === 10000 && t.jenis === "masuk");
         if (index !== -1) {
           transaksiList.splice(index, 1);
+          const now = new Date().toISOString().split('T')[0];
           historyRef.push({
             tanggal_transaksi: selectedDate,
             tanggal_riwayat: now,
@@ -383,11 +381,7 @@
       historyRef.on("value", snapshot => {
         const data = snapshot.val() || {};
         Object.values(data)
-          .sort((a, b) => {
-            const dateA = new Date(a.tanggal_riwayat || a.tanggal_transaksi || 0);
-            const dateB = new Date(b.tanggal_riwayat || b.tanggal_transaksi || 0);
-            return dateB - dateA;
-          })
+          .sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0))
           .forEach(entry => {
             const tr = document.createElement("tr");
             tr.innerHTML = `
