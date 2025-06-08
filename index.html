@@ -5,21 +5,92 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Catatan Keuangan & Presensi</title>
   <style>
-    body { font-family: Arial, sans-serif; padding: 20px; display: flex; flex-direction: column; align-items: center; margin: 0; }
-    input, select, button { margin: 5px; padding: 5px; }
-    table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-    th, td { border: 1px solid #ccc; padding: 8px; text-align: center; }
-    th { background-color: #f4f4f4; }
-    .btn-delete { color: red; cursor: pointer; }
-    #loginSection { display: block; text-align: center; }
+    body {
+      font-family: 'Arial', sans-serif;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      margin: 0;
+      background-color: #eaeaea;
+    }
+
+    h2 {
+      color: #34495e;
+      margin-bottom: 20px;
+      transition: color 0.3s;
+    }
+
+    h2:hover {
+      color: #2980b9;
+    }
+
+    input, select, button {
+      margin: 5px;
+      padding: 10px;
+      border-radius: 5px;
+      border: 1px solid #ccc;
+      transition: border-color 0.3s, background-color 0.3s;
+      width: 100%;
+      max-width: 300px;
+    }
+
+    input:focus, select:focus, button:focus {
+      border-color: #2980b9;
+      background-color: #ecf0f1;
+    }
+
+    button {
+      background-color: #3498db;
+      color: white;
+      cursor: pointer;
+      border: none;
+      transition: background-color 0.3s, transform 0.3s;
+    }
+
+    button:hover {
+      background-color: #2980b9;
+      transform: scale(1.05);
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
+      animation: fadeIn 0.5s;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+      border-radius: 5px;
+      overflow: hidden;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+
+    th, td {
+      border: 1px solid #ccc;
+      padding: 10px;
+      text-align: center;
+    }
+
+    th {
+      background-color: #2980b9;
+      color: white;
+    }
+
+    tr:hover {
+      background-color: #f1f1f1;
+    }
+
+    #loginSection { text-align: center; }
     #mainApp { display: none; width: 100%; max-width: 900px; position: relative; }
-    #presensiContainer { margin-top: 30px; }
     #saldoPresensi {
       position: absolute;
       top: 20px;
       right: 20px;
       font-size: 24px;
-      color: green;
+      color: #27ae60;
     }
   </style>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
@@ -28,10 +99,10 @@
 <body>
   <div id="loginSection">
     <h2>Login</h2>
-    <input type="text" id="username" placeholder="Username">
-    <input type="password" id="password" placeholder="Password">
+    <input type="text" id="username" placeholder="Username" aria-label="Username">
+    <input type="password" id="password" placeholder="Password" aria-label="Password">
     <br>
-    <button onclick="login()">Login</button>
+    <button onclick="login()" aria-label="Login">Login</button>
     <p id="loginError" style="color:red;"></p>
   </div>
 
@@ -41,7 +112,7 @@
       <h2>Daftar Anggota</h2>
       <div id="saldoPresensi">Saldo: Rp <span id="saldoKanan">0</span></div>
       <input type="date" id="tanggalPresensi">
-      <button id="togglePresensi" disabled>Tampilkan</button>
+      <button id="togglePresensi" disabled>Tampilkan Presensi</button>
       <table id="tabelPresensi" style="display:none;">
         <thead>
           <tr>
@@ -158,7 +229,7 @@
         saldo += item.jenis === 'masuk' ? item.nominal : -item.nominal;
       });
       saldoEl.textContent = saldo.toLocaleString();
-      saldoKananEl.textContent = saldo.toLocaleString(); // update saldo kanan
+      saldoKananEl.textContent = saldo.toLocaleString();
     }
 
     form.addEventListener("submit", function(e) {
@@ -180,19 +251,9 @@
       if (!currentUserCanEdit) return;
       if (e.target.classList.contains("btn-delete")) {
         const index = e.target.dataset.index;
-        const item = transaksiList[index];
         transaksiList.splice(index, 1);
         saveData();
         renderTransaksi();
-
-        if (item.keterangan && item.tanggal) {
-          const presensiKey = `${item.tanggal}_${item.keterangan}`;
-          db.ref("presensi/" + presensiKey).remove();
-          if (presensiData[presensiKey]) {
-            delete presensiData[presensiKey];
-            renderPresensi();
-          }
-        }
       }
     });
 
