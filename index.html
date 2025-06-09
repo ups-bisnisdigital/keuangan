@@ -497,8 +497,11 @@
       historyList.innerHTML = "";
       historyRef.on("value", snapshot => {
         const data = snapshot.val() || {};
-        Object.values(data)
-          .sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0))
+		Object.values(data)
+		  .sort((a, b) => {
+			// Gunakan key Firebase untuk urutan terbaru
+			return b[".key"] > a[".key"] ? 1 : -1;
+		  })
           .forEach(entry => {
             const tr = document.createElement("tr");
             tr.innerHTML = `
