@@ -2,76 +2,172 @@
 <html lang="id">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, maximum-scale=1.0, minimum-scale=1.0"/>
   <title>Catatan Keuangan & Presensi</title>
   <style>
-    body { font-family: Arial, sans-serif; padding: 20px; display: flex; flex-direction: column; align-items: center; margin: 0; }
-    input, select, button { margin: 5px; padding: 5px; }
-    table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-    th, td { border: 1px solid #ccc; padding: 8px; text-align: center; }
-    th { background-color: #f4f4f4; }
-    .btn-delete { color: red; cursor: pointer; }
-    #loginSection { display: block; text-align: center; }
-    #mainApp { display: none; width: 100%; max-width: 900px; position: relative; }
-    #presensiContainer { margin-top: 30px; }
-    #saldoPresensi {
-      position: absolute;
-      top: 20px;
-      right: 20px;
-      font-size: 24px;
-      color: green;
+    /* Reset */
+    * {
+      box-sizing: border-box;
     }
-    #historyModal {
-      display:none;
-      position: absolute;
-      top: 60px;
-      right: 20px;
-      background: white;
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: #f9fcff;
+      color: #333;
+      margin: 0;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    input, select, button {
+      width: 100%;
+      max-width: 100%;
+      padding: 12px;
+      margin: 6px 0;
+      font-size: 14px;
+      border-radius: 6px;
       border: 1px solid #ccc;
+    }
+
+    button {
+      background-color: #007BFF;
+      color: white;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+
+    button:hover {
+      background-color: #0056b3;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 16px;
+      overflow-x: auto;
+      display: block;
+    }
+
+    th, td {
+      min-width: 120px;
       padding: 10px;
-      z-index: 1000;
-      max-height: 300px;
-      overflow-y: auto;
-      width: 450px;
+      text-align: center;
+      border: 1px solid #d0e2ff;
+    }
+
+    th {
+      background-color: #007BFF;
+      color: white;
+    }
+
+    .btn-delete {
+      color: red;
+      cursor: pointer;
+    }
+
+    #loginSection {
+      background: #ffffff;
+      padding: 24px;
+      border-radius: 10px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+      width: 100%;
+      max-width: 400px;
+    }
+
+    #mainApp {
+      display: none;
+      width: 100%;
+      max-width: 900px;
+      position: relative;
+      background: #fff;
+      padding: 16px;
+      border-radius: 10px;
       box-shadow: 0 2px 10px rgba(0,0,0,0.1);
     }
+
+    #presensiContainer {
+      margin-top: 24px;
+    }
+
+    #saldoPresensi {
+      font-size: 18px;
+      color: #007BFF;
+      font-weight: bold;
+      margin-top: 10px;
+    }
+
+    #historyModal {
+      display: none;
+      position: fixed;
+      top: 60px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: white;
+      border: 1px solid #ccc;
+      padding: 16px;
+      z-index: 1000;
+      width: 90%;
+      max-width: 450px;
+      max-height: 300px;
+      overflow-y: auto;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+      border-radius: 8px;
+    }
+
+    #historyModal h3 {
+      margin-top: 0;
+      font-size: 18px;
+    }
+
+    @media screen and (max-width: 600px) {
+      body {
+        padding: 12px;
+      }
+      input, select, button {
+        font-size: 14px;
+      }
+      table {
+        font-size: 13px;
+      }
+      #saldoPresensi {
+        font-size: 16px;
+      }
+    }
   </style>
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>  
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>  
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script> 
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script> 
 </head>
 <body>
-
   <!-- LOGIN -->
   <div id="loginSection">
-    <h2>Login</h2>
+    <h2 style="color:#007BFF;">Login</h2>
     <input type="text" id="username" placeholder="Username">
     <input type="password" id="password" placeholder="Password">
-    <br>
     <button onclick="login()">Login</button>
     <p id="loginError" style="color:red;"></p>
   </div>
 
   <!-- MAIN APP -->
   <div id="mainApp">
-
-    <!-- Tombol Riwayat -->
     <div style="position: absolute; top: 60px; right: 20px;">
-      <button onclick="toggleHistory()" style="padding: 5px 10px; font-size: 14px;">Riwayat</button>
+      <button onclick="toggleHistory()" style="padding: 6px 12px; font-size: 14px;">Riwayat</button>
     </div>
 
     <!-- Modal Riwayat -->
     <div id="historyModal">
       <div style="display: flex; justify-content: space-between; align-items: center;">
-        <h3 style="margin: 0;">Riwayat Transaksi</h3>
-        <button onclick="toggleHistory()" style="padding: 4px 8px; font-size: 12px;">Sembunyikan</button>
+        <h3 style="margin: 0; color: #007BFF;">Riwayat Transaksi</h3>
+        <button onclick="toggleHistory()" style="background-color: #0056b3; padding: 4px 8px; font-size: 12px;">Sembunyikan</button>
       </div>
       <table style="width:100%; border-collapse: collapse; margin-top: 10px;">
         <thead>
           <tr>
-            <th style="text-align:left;">Tanggal Transaksi</th>
-            <th style="text-align:left;">Tanggal Riwayat</th>
-            <th style="text-align:left;">Keterangan</th>
-            <th style="text-align:right;">Nominal</th>
+            <th>Tanggal</th>
+            <th>Nominal</th>
+            <th>Jenis</th>
+            <th>Keterangan</th>
           </tr>
         </thead>
         <tbody id="historyList"></tbody>
@@ -80,7 +176,7 @@
 
     <!-- PRESENSI -->
     <div id="presensiContainer">
-      <h2>Daftar Anggota</h2>
+      <h2 style="color:#007BFF;">Daftar Anggota</h2>
       <div id="saldoPresensi">Saldo: Rp <span id="saldoKanan">0</span></div>
       <input type="date" id="tanggalPresensi">
       <button id="togglePresensi" disabled>Tampilkan</button>
@@ -98,7 +194,7 @@
     </div>
 
     <!-- KEUANGAN -->
-    <h2>Catatan Keuangan</h2>
+    <h2 style="color:#007BFF;">Catatan Keuangan</h2>
     <form id="formTransaksi">
       <input type="date" id="tanggal" required>
       <input type="number" id="nominal" placeholder="Nominal" required>
@@ -110,26 +206,28 @@
       <button type="submit">Tambah</button>
     </form>
     <h3>Saldo: Rp <span id="saldo">0</span></h3>
-    <table>
-      <thead>
-        <tr>
-          <th>Tanggal</th>
-          <th>Nominal</th>
-          <th>Jenis</th>
-          <th>Keterangan</th>
-          <th>Aksi</th>
-        </tr>
-      </thead>
-      <tbody id="history"></tbody>
-    </table>
-
+    <div style="overflow-x:auto;">
+      <table>
+        <thead>
+          <tr>
+            <th>Tanggal</th>
+            <th>Nominal</th>
+            <th>Jenis</th>
+            <th>Keterangan</th>
+            <th>Aksi</th>
+          </tr>
+        </thead>
+        <tbody id="history"></tbody>
+      </table>
+    </div>
   </div>
 
   <script>
+    // Firebase Config dan logika JavaScript tetap sama seperti sebelumnya
     const firebaseConfig = {
       apiKey: "AIzaSyATcgsc_rXGyCqgh7FQPWjveJqUv19jTJU",
       authDomain: "kasbisdig.firebaseapp.com",
-      databaseURL: "https://kasbisdig-default-rtdb.firebaseio.com",  
+      databaseURL: "https://kasbisdig-default-rtdb.firebaseio.com",   
       projectId: "kasbisdig",
       storageBucket: "kasbisdig.appspot.com",
       messagingSenderId: "321266458359",
@@ -138,7 +236,6 @@
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
     const historyRef = db.ref("history");
-
     const USERS = [
       { username: "2abisdig", password: "sukses321", canEdit: true },
       { username: "bisnisdigital", password: "12345678", canEdit: false }
@@ -184,28 +281,24 @@
     }
 
     function renderTransaksi() {
-  historyEl.innerHTML = '';
-  saldo = 0;
-
-  // Urutkan dari terbaru
-  const sortedList = [...transaksiList].reverse();
-
-  sortedList.forEach((item, index) => {
-    const tr = document.createElement("tr");
-    tr.innerHTML = `
-      <td>${item.tanggal}</td>
-      <td>Rp ${item.nominal.toLocaleString()}</td>
-      <td>${item.jenis}</td>
-      <td>${item.keterangan}</td>
-      <td>${currentUserCanEdit ? `<span class="btn-delete" data-index="${transaksiList.length - index - 1}">Hapus</span>` : '-'}</td>
-    `;
-    historyEl.appendChild(tr);
-    saldo += item.jenis === 'masuk' ? item.nominal : -item.nominal;
-  });
-
-  saldoEl.textContent = saldo.toLocaleString();
-  saldoKananEl.textContent = saldo.toLocaleString(); // update saldo kanan
-}
+      historyEl.innerHTML = '';
+      saldo = 0;
+      const sortedList = [...transaksiList].reverse();
+      sortedList.forEach((item, index) => {
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td>${item.tanggal}</td>
+          <td>Rp ${item.nominal.toLocaleString()}</td>
+          <td>${item.jenis}</td>
+          <td>${item.keterangan}</td>
+          <td>${currentUserCanEdit ? `<span class="btn-delete" data-index="${transaksiList.length - index - 1}">Hapus</span>` : '-'}</td>
+        `;
+        historyEl.appendChild(tr);
+        saldo += item.jenis === 'masuk' ? item.nominal : -item.nominal;
+      });
+      saldoEl.textContent = saldo.toLocaleString();
+      saldoKananEl.textContent = saldo.toLocaleString(); // update saldo kanan
+    }
 
     form.addEventListener("submit", function(e) {
       e.preventDefault();
@@ -214,14 +307,10 @@
       const nominal = parseInt(document.getElementById("nominal").value);
       const jenis = document.getElementById("jenis").value;
       const keterangan = document.getElementById("keterangan").value;
-
-      // Tambahkan ke awal array
       transaksiList.unshift({ tanggal, nominal, jenis, keterangan });
       saveData();
       renderTransaksi();
       form.reset();
-
-      // Simpan ke riwayat
       const now = new Date().toISOString().split('T')[0];
       historyRef.push({
         tanggal_transaksi: tanggal,
@@ -234,38 +323,32 @@
     });
 
     historyEl.addEventListener("click", function(e) {
-  if (!currentUserCanEdit) return;
-  if (e.target.classList.contains("btn-delete")) {
-    const index = parseInt(e.target.dataset.index); // index langsung ke transaksiList
-    const item = transaksiList[index];
-
-    // Hapus dari array utama
-    transaksiList.splice(index, 1);
-    saveData();
-    renderTransaksi();
-
-    // Hapus presensi jika ada
-    if (item.keterangan && item.tanggal) {
-      const presensiKey = `${item.tanggal}_${item.keterangan}`;
-      db.ref("presensi/" + presensiKey).remove();
-      if (presensiData[presensiKey]) {
-        delete presensiData[presensiKey];
-        renderPresensi();
+      if (!currentUserCanEdit) return;
+      if (e.target.classList.contains("btn-delete")) {
+        const index = parseInt(e.target.dataset.index);
+        const item = transaksiList[index];
+        transaksiList.splice(index, 1);
+        saveData();
+        renderTransaksi();
+        if (item.keterangan && item.tanggal) {
+          const presensiKey = `${item.tanggal}_${item.keterangan}`;
+          db.ref("presensi/" + presensiKey).remove();
+          if (presensiData[presensiKey]) {
+            delete presensiData[presensiKey];
+            renderPresensi();
+          }
+        }
+        const now = new Date().toISOString().split('T')[0];
+        historyRef.push({
+          tanggal_transaksi: item.tanggal,
+          tanggal_riwayat: now,
+          nominal: item.nominal,
+          jenis: item.jenis,
+          keterangan: item.keterangan,
+          action: "dihapus"
+        });
       }
-    }
-
-    // Simpan ke riwayat sebagai penghapusan
-    const now = new Date().toISOString().split('T')[0]; // timestamp
-    historyRef.push({
-      tanggal_transaksi: item.tanggal,
-      tanggal_riwayat: now,
-      nominal: item.nominal,
-      jenis: item.jenis,
-      keterangan: item.keterangan,
-      action: "dihapus"
     });
-  }
-});
 
     const mahasiswa = [
       "ZIDAN IKHSANUR ADITIYA RACHMAN", "MAHARDIKA MUTIARA CINTA", "NAUFAL MAULANA MUBAROK",
@@ -340,7 +423,6 @@
       const nama = checkbox.dataset.nama;
       const key = `${selectedDate}_${nama}`;
       const now = new Date().toISOString().split('T')[0];
-
       if (checkbox.checked) {
         db.ref("presensi/" + key).set(true);
         transaksiList.unshift({ tanggal: selectedDate, nominal: 10000, jenis: "masuk", keterangan: nama });
