@@ -5,16 +5,14 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, maximum-scale=1.0, minimum-scale=1.0"/>
   <title>Catatan Keuangan & Presensi</title>
   <style>
-  #tabelPresensi td:nth-child(2), 
-#tabelPresensi th:nth-child(2) {
-  text-align: left;
-}
-
+    #tabelPresensi td:nth-child(2), 
+    #tabelPresensi th:nth-child(2) {
+      text-align: left;
+    }
     /* Reset */
     * {
       box-sizing: border-box;
     }
-
     body {
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
       background-color: #f9fcff;
@@ -25,7 +23,6 @@
       flex-direction: column;
       align-items: center;
     }
-
     input, select, button {
       width: 100%;
       max-width: 100%;
@@ -35,18 +32,15 @@
       border-radius: 6px;
       border: 1px solid #ccc;
     }
-
     button {
       background-color: #007BFF;
       color: white;
       cursor: pointer;
       transition: background-color 0.3s ease;
     }
-
     button:hover {
       background-color: #0056b3;
     }
-
     table {
       width: 100%;
       border-collapse: collapse;
@@ -54,24 +48,20 @@
       overflow-x: auto;
       display: block;
     }
-
     th, td {
       min-width: 120px;
       padding: 10px;
       text-align: center;
       border: 1px solid #d0e2ff;
     }
-
     th {
       background-color: #007BFF;
       color: white;
     }
-
     .btn-delete {
       color: red;
       cursor: pointer;
     }
-
     #loginSection {
       background: #ffffff;
       padding: 24px;
@@ -80,7 +70,6 @@
       width: 100%;
       max-width: 400px;
     }
-
     #mainApp {
       display: none;
       width: 100%;
@@ -91,18 +80,15 @@
       border-radius: 10px;
       box-shadow: 0 2px 10px rgba(0,0,0,0.1);
     }
-
     #presensiContainer {
       margin-top: 24px;
     }
-
     #saldoPresensi {
       font-size: 18px;
       color: #007BFF;
       font-weight: bold;
       margin-top: 10px;
     }
-
     #historyModal {
       display: none;
       position: fixed;
@@ -120,12 +106,10 @@
       box-shadow: 0 4px 12px rgba(0,0,0,0.2);
       border-radius: 8px;
     }
-
     #historyModal h3 {
       margin-top: 0;
       font-size: 18px;
     }
-
     @media screen and (max-width: 600px) {
       body {
         padding: 12px;
@@ -141,8 +125,8 @@
       }
     }
   </style>
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script> 
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script> 
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>  
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>  
 </head>
 <body>
   <!-- LOGIN -->
@@ -151,6 +135,7 @@
     <input type="text" id="username" placeholder="Username">
     <input type="password" id="password" placeholder="Password">
     <button onclick="login()">Login</button>
+    <button onclick="loginAsMember()" style="background-color: #28a745; margin-top: 10px;">Masuk sebagai Anggota</button>
     <p id="loginError" style="color:red;"></p>
   </div>
 
@@ -169,9 +154,9 @@
       <table style="width:100%; border-collapse: collapse; margin-top: 10px;">
         <thead>
           <tr>
-            <th>Tanggal</th>
-            <th>Nominal</th>
-            <th>Jenis</th>
+            <th>Tanggal Diubah</th>
+            <th>Tanggal Transaksi</th>
+            <th>Nama</th>
             <th>Keterangan</th>
           </tr>
         </thead>
@@ -186,16 +171,16 @@
       <input type="date" id="tanggalPresensi">
       <button id="togglePresensi" disabled>Tampilkan</button>
       <table id="tabelPresensi" style="display:none;">
-  <thead>
-    <tr>
-      <th>No</th>
-      <th>Nama</th>
-      <th>NPM</th>
-      <th>Keterangan</th>
-    </tr>
-  </thead>
-  <tbody id="presensiBody"></tbody>
-</table>
+        <thead>
+          <tr>
+            <th>No</th>
+            <th>Nama</th>
+            <th>NPM</th>
+            <th>Keterangan</th>
+          </tr>
+        </thead>
+        <tbody id="presensiBody"></tbody>
+      </table>
     </div>
 
     <!-- KEUANGAN -->
@@ -228,7 +213,6 @@
   </div>
 
   <script>
-    // Firebase Config dan logika JavaScript tetap sama seperti sebelumnya
     const firebaseConfig = {
       apiKey: "AIzaSyATcgsc_rXGyCqgh7FQPWjveJqUv19jTJU",
       authDomain: "kasbisdig.firebaseapp.com",
@@ -242,8 +226,7 @@
     const db = firebase.database();
     const historyRef = db.ref("history");
     const USERS = [
-      { username: "2abisdig", password: "sukses321", canEdit: true },
-      { username: "bisnisdigital", password: "12345678", canEdit: false }
+      { username: "bisdig", password: "adminadmin", canEdit: true },
     ];
     let currentUserCanEdit = false;
 
@@ -263,6 +246,15 @@
       } else {
         document.getElementById("loginError").textContent = "Username atau password salah!";
       }
+    }
+
+    function loginAsMember() {
+      currentUserCanEdit = false;
+      document.getElementById("loginSection").style.display = "none";
+      document.getElementById("mainApp").style.display = "block";
+      document.getElementById("formTransaksi").style.display = "none";
+      loadData();
+      loadPresensiData();
     }
 
     let saldo = 0;
@@ -302,7 +294,7 @@
         saldo += item.jenis === 'masuk' ? item.nominal : -item.nominal;
       });
       saldoEl.textContent = saldo.toLocaleString();
-      saldoKananEl.textContent = saldo.toLocaleString(); // update saldo kanan
+      saldoKananEl.textContent = saldo.toLocaleString();
     }
 
     form.addEventListener("submit", function(e) {
@@ -356,17 +348,49 @@
     });
 
     const mahasiswa = [
-      "ZIDAN IKHSANUR ADITIYA RACHMAN", "MAHARDIKA MUTIARA CINTA", "NAUFAL MAULANA MUBAROK",
-      "SALWA RIZKI AMANATI", "MUHAMMAD SANDY RAMADHANI", "DINDA PRAMESWARI",
-      "SALMAN BAGUS SATRIO", "MUHAMMAD MALIK ALFARIZI", "AFRIZAA AMNIL K", "NABILA MUTIA SYAHDA",
-      "MUHAMMAD YUSRIL AMRULLOH", "NABILLA AZZAHRA PUTRI", "ARZY BIAN P", "IVA DHIRAMETA DEVI",
-      "BALYA IBNU TAUFIK", "ZAHWA SALEH SEFF", "LUTFHI ARYANI", "AISYAH ADZKA NISA", "DEVINA DWI RIZQI MARDHATILLAH"
+		"AFRIZAA AMNIL K",
+		"AISYAH ADZKA NISA",
+		"ARZY BIAN P",
+		"BALYA IBNU TAUFIK",
+		"DEVINA DWI RIZQI MARDHATILLAH",
+		"DINDA PRAMESWARI",
+		"IVA DHIRAMETA DEVI",
+		"LUTFHI ARYANI",
+		"MAHARDIKA MUTIARA CINTA",
+		"MUHAMMAD MALIK ALFARIZI",
+		"MUHAMMAD SANDY RAMADHANI",
+		"MUHAMMAD YUSRIL AMRULLOH",
+		"NABILA MUTIA SYAHDA",
+		"NABILLA AZZAHRA PUTRI",
+		"NAUFAL MAULANA MUBAROK",
+		"SALMAN BAGUS SATRIO",
+		"SALWA RIZKI AMANATI",
+		"ZAHWA SALEH SEFF",
+		"ZIDAN IKHSANUR ADITIYA RACHMAN"
+
     ];
 
     const npms = [
-      "4424600003", "4424600008", "4424600009", "4424600015", "4424600016", "4424600018",
-      "4424600019", "4424600024", "4424600025", "4424600026", "4424600028", "4424600029",
-      "4424600030", "4424600032", "4424600033", "4424600034", "4424600036", "4424600037", "4424600005"
+		"4424600025",
+		"4424600037",
+		"4424600030",
+		"4424600033",
+		"4424600005",
+		"4424600018",
+		"4424600032",
+		"4424600036",
+		"4424600008",
+		"4424600024",
+		"4424600016",
+		"4424600028",
+		"4424600026",
+		"4424600029",
+		"4424600009",
+		"4424600019",
+		"4424600015",
+		"4424600034",
+		"4424600003"
+
     ];
 
     const presensiBody = document.getElementById("presensiBody");
