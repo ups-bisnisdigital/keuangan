@@ -5,6 +5,11 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, maximum-scale=1.0, minimum-scale=1.0"/>
   <title>Catatan Keuangan & Presensi</title>
   <style>
+  #tabelPresensi td:nth-child(2), 
+#tabelPresensi th:nth-child(2) {
+  text-align: left;
+}
+
     /* Reset */
     * {
       box-sizing: border-box;
@@ -181,16 +186,16 @@
       <input type="date" id="tanggalPresensi">
       <button id="togglePresensi" disabled>Tampilkan</button>
       <table id="tabelPresensi" style="display:none;">
-        <thead>
-          <tr>
-            <th>No</th>
-            <th>Nama</th>
-            <th>NPM</th>
-            <th>Keterangan</th>
-          </tr>
-        </thead>
-        <tbody id="presensiBody"></tbody>
-      </table>
+  <thead>
+    <tr>
+      <th>No</th>
+      <th>Nama</th>
+      <th>NPM</th>
+      <th>Keterangan</th>
+    </tr>
+  </thead>
+  <tbody id="presensiBody"></tbody>
+</table>
     </div>
 
     <!-- KEUANGAN -->
