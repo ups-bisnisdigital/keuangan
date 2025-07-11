@@ -225,56 +225,55 @@
       appId: "1:321266458359:web:9e291f1fe862f37860bdf2"
     };
     firebase.initializeApp(firebaseConfig);
-  const db = firebase.database();
-  const historyRef = db.ref("history");
+    const db = firebase.database();
+    const historyRef = db.ref("history");
+    const USERS = [
+      { username: "bisdig", password: "adminadmin", canEdit: true },
+    ];
+    let currentUserCanEdit = false;
 
-  const USERS = [
-    { username: "bisdig", password: "adminadmin", canEdit: true },
-  ];
-  let currentUserCanEdit = false;
+    function login() {
+      const user = document.getElementById("username").value;
+      const pass = document.getElementById("password").value;
+      const valid = USERS.find(u => u.username === user && u.password === pass);
+      if (valid) {
+        currentUserCanEdit = valid.canEdit;
+        document.getElementById("loginSection").style.display = "none";
+        document.getElementById("mainApp").style.display = "block";
+        if (!currentUserCanEdit) {
+          document.getElementById("formTransaksi").style.display = "none";
+        }
+        loadData();
+        loadPresensiData();
+      } else {
+        document.getElementById("loginError").textContent = "Username atau password salah!";
+      }
+    }
 
-  function login() {
-    const user = document.getElementById("username").value;
-    const pass = document.getElementById("password").value;
-    const valid = USERS.find(u => u.username === user && u.password === pass);
-    if (valid) {
-      currentUserCanEdit = valid.canEdit;
+    function loginAsMember() {
+      currentUserCanEdit = false;
       document.getElementById("loginSection").style.display = "none";
       document.getElementById("mainApp").style.display = "block";
-      if (!currentUserCanEdit) {
-        document.getElementById("formTransaksi").style.display = "none";
-      }
+      document.getElementById("formTransaksi").style.display = "none";
       loadData();
       loadPresensiData();
-    } else {
-      document.getElementById("loginError").textContent = "Username atau password salah!";
     }
-  }
 
-  function loginAsMember() {
-    currentUserCanEdit = false;
-    document.getElementById("loginSection").style.display = "none";
-    document.getElementById("mainApp").style.display = "block";
-    document.getElementById("formTransaksi").style.display = "none";
-    loadData();
-    loadPresensiData();
-  }
+    let saldo = 0;
+    let transaksiList = [];
+    const saldoEl = document.getElementById("saldo");
+    const saldoKananEl = document.getElementById("saldoKanan");
+    const historyEl = document.getElementById("history");
+    const form = document.getElementById("formTransaksi");
 
-  let saldo = 0;
-  let transaksiList = [];
-  const saldoEl = document.getElementById("saldo");
-  const saldoKananEl = document.getElementById("saldoKanan");
-  const historyEl = document.getElementById("history");
-  const form = document.getElementById("formTransaksi");
+    function loadData() {
+      db.ref("transaksi").on("value", snapshot => {
+        const data = snapshot.val();
+        transaksiList = data || [];
+        renderTransaksi();
+      });
+    }
 
-  // ✅ ✅ ✅ Ini bagian yang diperbaiki
-  function loadData() {
-    db.ref("transaksi").on("value", snapshot => {
-      const data = snapshot.val();
-      transaksiList = data ? Object.values(data) : [];
-      renderTransaksi();
-    });
-  }
     function saveData() {
       if (!currentUserCanEdit) return;
       db.ref("transaksi").set(transaksiList);
