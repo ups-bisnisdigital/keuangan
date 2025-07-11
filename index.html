@@ -2,8 +2,11 @@
 <html lang="id">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, maximum-scale=1.0, minimum-scale=1.0"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>KAS 2A BISNIS DIGITAL</title>
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
   <style>
     #tabelPresensi td:nth-child(2), 
     #tabelPresensi th:nth-child(2) {
@@ -214,65 +217,70 @@
     </div>
   </div>
 
-  <script>
+   <script>
+    // ✅ Firebase Baru (uangkaskelasa)
     const firebaseConfig = {
-      apiKey: "AIzaSyATcgsc_rXGyCqgh7FQPWjveJqUv19jTJU",
-      authDomain: "kasbisdig.firebaseapp.com",
-      databaseURL: "https://kasbisdig-default-rtdb.firebaseio.com",   
-      projectId: "kasbisdig",
-      storageBucket: "kasbisdig.appspot.com",
-      messagingSenderId: "321266458359",
-      appId: "1:321266458359:web:9e291f1fe862f37860bdf2"
+      apiKey: "AIzaSyBArFPEGZkkMEsD5vUk5DSH8LfpmfQpPIE",
+      authDomain: "uangkaskelasa.firebaseapp.com",
+      databaseURL: "https://uangkaskelasa-default-rtdb.firebaseio.com", // ✅ WAJIB ditambahkan
+      projectId: "uangkaskelasa",
+      storageBucket: "uangkaskelasa.appspot.com",
+      messagingSenderId: "1016201840233",
+      appId: "1:1016201840233:web:23f6cf9a7fe6db127f04f8",
+      measurementId: "G-ED0VG7VCCZ"
     };
-    firebase.initializeApp(firebaseConfig);
-    const db = firebase.database();
-    const historyRef = db.ref("history");
-    const USERS = [
-      { username: "bisdig", password: "adminadmin", canEdit: true },
-    ];
-    let currentUserCanEdit = false;
 
-    function login() {
-      const user = document.getElementById("username").value;
-      const pass = document.getElementById("password").value;
-      const valid = USERS.find(u => u.username === user && u.password === pass);
-      if (valid) {
-        currentUserCanEdit = valid.canEdit;
-        document.getElementById("loginSection").style.display = "none";
-        document.getElementById("mainApp").style.display = "block";
-        if (!currentUserCanEdit) {
-          document.getElementById("formTransaksi").style.display = "none";
-        }
-        loadData();
-        loadPresensiData();
-      } else {
-        document.getElementById("loginError").textContent = "Username atau password salah!";
-      }
-    }
+      firebase.initializeApp(firebaseConfig);
+  const db = firebase.database();
+  const historyRef = db.ref("history");
 
-    function loginAsMember() {
-      currentUserCanEdit = false;
+  const USERS = [
+    { username: "bisdig", password: "adminadmin", canEdit: true },
+  ];
+  let currentUserCanEdit = false;
+
+  function login() {
+    const user = document.getElementById("username").value;
+    const pass = document.getElementById("password").value;
+    const valid = USERS.find(u => u.username === user && u.password === pass);
+    if (valid) {
+      currentUserCanEdit = valid.canEdit;
       document.getElementById("loginSection").style.display = "none";
       document.getElementById("mainApp").style.display = "block";
-      document.getElementById("formTransaksi").style.display = "none";
+      if (!currentUserCanEdit) {
+        document.getElementById("formTransaksi").style.display = "none";
+      }
       loadData();
       loadPresensiData();
+    } else {
+      document.getElementById("loginError").textContent = "Username atau password salah!";
     }
+  }
 
-    let saldo = 0;
-    let transaksiList = [];
-    const saldoEl = document.getElementById("saldo");
-    const saldoKananEl = document.getElementById("saldoKanan");
-    const historyEl = document.getElementById("history");
-    const form = document.getElementById("formTransaksi");
+  function loginAsMember() {
+    currentUserCanEdit = false;
+    document.getElementById("loginSection").style.display = "none";
+    document.getElementById("mainApp").style.display = "block";
+    document.getElementById("formTransaksi").style.display = "none";
+    loadData();
+    loadPresensiData();
+  }
 
-    function loadData() {
-      db.ref("transaksi").on("value", snapshot => {
-        const data = snapshot.val();
-        transaksiList = data || [];
-        renderTransaksi();
-      });
-    }
+  let saldo = 0;
+  let transaksiList = [];
+  const saldoEl = document.getElementById("saldo");
+  const saldoKananEl = document.getElementById("saldoKanan");
+  const historyEl = document.getElementById("history");
+  const form = document.getElementById("formTransaksi");
+
+  // ✅ ✅ ✅ Ini bagian yang diperbaiki
+  function loadData() {
+    db.ref("transaksi").on("value", snapshot => {
+      const data = snapshot.val();
+      transaksiList = data ? Object.values(data) : [];
+      renderTransaksi();
+    });
+  }
 
     function saveData() {
       if (!currentUserCanEdit) return;
