@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+	<script src="icon-generator.js" defer></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Analisa Harga Bawang Merah</title>
+    <meta name="theme-color" content="#4caf50">
+    <meta name="description" content="Analisis harga bawang merah berdasarkan parameter lokal">
+    <link rel="stylesheet" href="style.css">
+    <link rel="manifest" href="manifest.json">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Analisa Harga Bawang Merah</h1>
+            <p>Hitung dan analisis harga bawang merah dengan parameter lokal</p>
+        </header>
+
+        <nav class="tabs">
+            <button id="calculator-tab" class="tab-button active">Kalkulator</button>
+            <button id="history-tab" class="tab-button">Riwayat</button>
+        </nav>
+
+        <main>
+            <!-- Calculator Section -->
+            <section id="calculator" class="section active">
+                <form id="price-form" class="form">
+                    <div class="input-group">
+                        <label for="name">Nama</label>
+                        <input type="text" id="name" placeholder="Enter name" required>
+                    </div>
+
+                    <div class="input-group">
+                        <label for="swat-length">Panjang Swat (meter)</label>
+                        <input type="number" id="swat-length" min="0" step="0.01" required>
+                    </div>
+
+                    <div class="input-group">
+                        <label for="ceblok-per-meter">Ceblok Per Meter (ceblok)</label>
+                        <input type="number" id="ceblok-per-meter" min="0" step="0.01" required>
+                    </div>
+
+                    <div class="input-group">
+                        <label for="swat-width">Lebar Swat (ceblok)</label>
+                        <input type="number" id="swat-width" min="0" step="0.01" required>
+                    </div>
+
+                    <div class="input-group">
+                        <label for="total-swat">Total Swat (swat)</label>
+                        <input type="number" id="total-swat" min="0" step="0.01" required>
+                    </div>
+
+                    <div class="input-group">
+                        <label for="market-price">Harga Pasar Saat Ini (Rp)</label>
+                        <input type="number" id="market-price" min="0" step="100" required>
+                    </div>
+
+                    <button type="submit" class="btn-calculate">Hitung</button>
+                </form>
+
+                <div id="results" class="results hidden">
+                    <h2>Hasil Analisis</h2>
+                    <div class="results-focus">
+                        <div class="result-card focus">
+                            <h3>Total Kuintal</h3>
+                            <p id="total-quintal-focus" class="text-blue">0</p>
+                        </div>
+                        <div class="result-card focus">
+                            <h3>Harga Beli Kategori A</h3>
+                            <p id="buy-a-focus" class="text-green">Rp 0</p>
+                        </div>
+                        <div class="result-card focus">
+                            <h3>Harga Beli Kategori B</h3>
+                            <p id="buy-b-focus" class="text-yellow">Rp 0</p>
+                        </div>
+                    </div>
+                    <div class="results-grid">
+                        <div class="result-card">
+                            <h3>Total Kilogram</h3>
+                            <p id="total-kilo" class="text-blue">0</p>
+                        </div>
+                        <div class="result-card">
+                            <h3>Total Kuintal</h3>
+                            <p id="total-quintal">0</p>
+                        </div>
+                        <div class="result-card">
+                            <h3>Tindak</h3>
+                            <p id="tindak" class="text-blue">0</p>
+                        </div>
+                        <div class="result-card">
+                            <h3>Nilai Berdasarkan Harga Pasar</h3>
+                            <p id="market-value" class="text-blue">Rp 0</p>
+                        </div>
+                        <div class="result-card">
+                            <h3>Harga Beli Kategori A</h3>
+                            <p id="buy-a">Rp 0</p>
+                        </div>
+                        <div class="result-card">
+                            <h3>Harga Beli Kategori B</h3>
+                            <p id="buy-b" class="text-yellow">Rp 0</p>
+                        </div>
+                        <div class="result-card">
+                            <h3>Selisih Harga Kategori A</h3>
+                            <p id="difference-a" class="text-blue">Rp 0</p>
+                        </div>
+                        <div class="result-card">
+                            <h3>Selisih Harga Kategori B</h3>
+                            <p id="difference-b" class="text-blue">Rp 0</p>
+                        </div>
+                    </div>
+                    <button id="save-result" class="btn-save">Simpan Hasil</button>
+                </div>
+            </section>
+
+            <!-- History Section -->
+            <section id="history" class="section hidden">
+                <div class="history-header">
+                    <h2>Riwayat Perhitungan</h2>
+                </div>
+                <div id="history-list" class="history-list">
+                    <!-- History items will be inserted here -->
+                </div>
+            </section>
+        </main>
+
+        <div id="snackbar" class="snackbar"></div>
+    </div>
+
+    <script src="app.js?v=2"></script>
+</body>
+</html>
