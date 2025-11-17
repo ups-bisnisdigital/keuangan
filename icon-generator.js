@@ -1,6 +1,6 @@
 // Function to generate placeholder icons as data URLs
 function generateIcons() {
-    const sizes = [72, 96, 128, 144, 152, 192, 384, 512];
+    const sizes = [120, 152, 167, 180, 192, 384, 512];
     const iconCache = {};
     
     sizes.forEach(size => {
@@ -55,6 +55,25 @@ function updateManifestWithIcons() {
         type: 'application/json'
     }));
     document.head.appendChild(manifestEl);
+
+    const appleMetaTags = [
+        ['meta', { name: 'apple-mobile-web-app-capable', content: 'yes' }],
+        ['meta', { name: 'apple-mobile-web-app-status-bar-style', content: 'default' }],
+        ['meta', { name: 'apple-mobile-web-app-title', content: 'Analisa Harga Bawang Merah' }]
+    ];
+    appleMetaTags.forEach(([tag, attrs]) => {
+        const el = document.createElement(tag);
+        Object.keys(attrs).forEach(k => el.setAttribute(k, attrs[k]));
+        document.head.appendChild(el);
+    });
+
+    ['180','167','152','120'].forEach(size => {
+        const link = document.createElement('link');
+        link.rel = 'apple-touch-icon';
+        link.sizes = `${size}x${size}`;
+        link.href = iconCache[size];
+        document.head.appendChild(link);
+    });
 }
 
 // Generate icons when the app loads
